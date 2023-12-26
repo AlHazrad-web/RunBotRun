@@ -9,13 +9,14 @@ public class CharacterController : MonoBehaviour {
 
     public float moveSpeed = 5.0f;
     public float jumpForce = 5.0f;
-    public Transform groundCheck;
+    Transform groundCheck;
     public LayerMask groundLayer;
     public LayerMask wallLayer;
 
-    private Rigidbody rigidbody;
+    Rigidbody rigidbody;
+    CapsuleCollider capsuleCollider;
     Rigidbody[] rigidbodies;
-    private Animator animator;
+    Animator animator;
     public bool isGrounded;
     public bool isWall;
     public Quaternion rotation = Quaternion.identity;
@@ -24,16 +25,28 @@ public class CharacterController : MonoBehaviour {
 
     public Transform cameraTransform;
 
+    //public float up;   
+    //public Vector3 testsize = new Vector3(0.29f, 0.8f, 0.29f);
+    //GameObject go;
+
     private void Awake() {
         instance = this;
         rigidbody = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
+        capsuleCollider = GetComponent<CapsuleCollider>();
         rigidbodies = GetComponentsInChildren<Rigidbody>();
+        groundCheck = gameObject.transform.Find("groundCheck").transform;
+        //go = GameObject.CreatePrimitive(PrimitiveType.Cube);
     }
 
-    private void Update() {
+    void FixedUpdate() {
+        cameraTransform.transform.position = Vector3.Lerp(cameraTransform.transform.position, transform.position, 10 * Time.deltaTime);
+    }
 
-        gameObject.transform.position = Vector3.Lerp(cameraTransform.transform.position, transform.position, 10 * Time.deltaTime);
+   
+    private void Update() {
+       
+       
 
         if (!isGrounded && !isWall && Physics.CheckSphere(groundCheck.position, 1.5f, groundLayer)) {
             if (rigidbody.velocity.z == 0.0f && rigidbody.velocity.y < 0.0f) {
@@ -45,12 +58,24 @@ public class CharacterController : MonoBehaviour {
         if (isGrounded) {
             animator.SetBool("Falling", false);
             animator.SetBool("JumpDown", false);
+          
         }
         if (!isGrounded && rigidbody.velocity.y != 0.0f) {
-            animator.SetBool("Falling", true);
+            animator.SetBool("Falling", true);            
+        }
+        if (!animator.GetBool("Falling")) {
+            capsuleCollider.center = new Vector3(0.0f, 0.91f, 0.0f);
+            capsuleCollider.height = 1.82f;
+        } else {
+            capsuleCollider.center = new Vector3(0.0f, 0.57f, 0.0f);
+            capsuleCollider.height = 1.28f;
         }
 
-        if (Physics.CheckBox(new Vector3(transform.position.x, transform.position.y + 0.8f, transform.position.z), new Vector3(0.29f, 0.8f, 0.29f), Quaternion.identity, wallLayer)) {
+        Vector3 size = new Vector3(0.29f, 0.72f, 0.29f);
+        Vector3 pos = new Vector3(transform.position.x, transform.position.y + 0.71f, transform.position.z);
+        //go.transform.position = pos;
+        //go.transform.localScale = testsize;
+        if (Physics.CheckBox(pos, size, Quaternion.identity, wallLayer)) {
             isWall = true;
         } else {
             isWall = false;           
@@ -76,19 +101,8 @@ public class CharacterController : MonoBehaviour {
 
         if (isGrounded && Input.GetButtonDown("Jump")) {
             animator.SetBool("JumpUp", true);           
-        }
-       
-       
+        } 
     }
-
-    //private void FixedUpdate() {
-    //    if (!isGrounded && isWall) {
-    //        float moveInput = Input.GetAxis("Horizontal");
-    //        if (moveInput != 0f) {
-    //            rigidbody.velocity = Vector3.down * Time.deltaTime * 200.0f;
-    //        }
-    //    }
-    //}
 
     public void Jump() {
         Debug.Log("Jump");
