@@ -22,6 +22,8 @@ public class CharacterController : MonoBehaviour {
 
     public bool death = false;
 
+    public Transform cameraTransform;
+
     private void Awake() {
         instance = this;
         rigidbody = GetComponent<Rigidbody>();
@@ -30,8 +32,9 @@ public class CharacterController : MonoBehaviour {
     }
 
     private void Update() {
-      
-        
+
+        gameObject.transform.position = Vector3.Lerp(cameraTransform.transform.position, transform.position, 10 * Time.deltaTime);
+
         if (!isGrounded && !isWall && Physics.CheckSphere(groundCheck.position, 1.5f, groundLayer)) {
             if (rigidbody.velocity.z == 0.0f && rigidbody.velocity.y < 0.0f) {
                 animator.SetBool("Falling", false);
